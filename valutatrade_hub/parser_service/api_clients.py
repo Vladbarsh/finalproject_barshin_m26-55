@@ -114,9 +114,9 @@ class ExchangeRateApiClient(BaseApiClient):
                 "unsupported-code",
             }
             reason = data.get("error-type")
-            raise ApiRequestError(
-                f"ExchangeRate-API: {reason if reason in known else 'ошибка источника'}"
-            )
+            if not isinstance(reason, str) or reason not in known:
+                reason = "ошибка источника"
+            raise ApiRequestError(f"ExchangeRate-API: {reason}")
         try:
             if data["base_code"] != "USD":
                 raise ValueError("Неверная базовая валюта")

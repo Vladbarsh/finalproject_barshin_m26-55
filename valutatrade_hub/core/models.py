@@ -3,6 +3,7 @@
 import hashlib
 import hmac
 import secrets
+from datetime import datetime
 
 from valutatrade_hub.core.currencies import get_currency
 from valutatrade_hub.core.exceptions import InsufficientFundsError, StorageError
@@ -23,7 +24,12 @@ class User:
             raise ValueError("Пустая соль пароля")
         self._hashed_password = hashed_password
         self._salt = salt
-        self._registration_date = parse_time(registration_date)
+        date = (
+            registration_date.isoformat()
+            if isinstance(registration_date, datetime)
+            else registration_date
+        )
+        self._registration_date = parse_time(date)
 
     @classmethod
     def create(cls, user_id, username, password):
@@ -56,6 +62,16 @@ class User:
         if not isinstance(value, str) or not value.strip():
             raise ValueError("Имя пользователя не может быть пустым")
         self._username = value.strip()
+
+    @property
+    def hashed_password(self):
+        """Сохранённый хеш без возможности внешней замены."""
+        return self._hashed_password
+
+    @property
+    def salt(self):
+        """Соль сохранённого хеша."""
+        return self._salt
 
     @property
     def registration_date(self):
@@ -180,17 +196,19 @@ class Portfolio:
 
             pairs = DatabaseManager().read("rates")["pairs"]
             ttl = SettingsLoader().get("rates_ttl_seconds")
-            rate = lambda code: cached_rate(pairs, code, base, ttl)[0]  # noqa: E731
         else:
             pairs = {
                 key: {"rate": value, "updated_at": iso_time()}
                 for key, value in exchange_rates.items()
             }
-            rate = lambda code: cached_rate(pairs, code, base)[0]  # noqa: E731
-        return sum(
-            wallet.balance * rate(code)
-            for code, wallet in self._wallets.items()
-            if wallet.balance
+            ttl = None
+        return number(
+            sum(
+                wallet.balance * cached_rate(pairs, code, base, ttl)[0]
+                for code, wallet in self._wallets.items()
+                if wallet.balance
+            ),
+            allow_zero=True,
         )
 
     def to_dict(self):

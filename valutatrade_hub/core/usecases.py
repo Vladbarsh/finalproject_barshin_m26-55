@@ -125,7 +125,12 @@ class TradingService:
             )
             total += value
             rows.append((code, wallet.balance, value))
-        return {"username": user.username, "base": base, "rows": rows, "total": total}
+        return {
+            "username": user.username,
+            "base": base,
+            "rows": rows,
+            "total": number(total, allow_zero=True),
+        }
 
     @log_action(verbose=True)
     def buy(self, user_id, currency_code, amount):

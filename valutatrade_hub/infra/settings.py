@@ -11,6 +11,7 @@ DEFAULTS = {
     "base_currency": "USD",
     "log_max_bytes": 1_048_576,
     "log_backup_count": 3,
+    "log_format": "%(levelname)s %(asctime)sZ %(message)s",
     "request_timeout": 10,
     "update_interval": 300,
 }

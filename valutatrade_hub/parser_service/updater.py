@@ -2,6 +2,7 @@
 
 import logging
 
+from valutatrade_hub.core.currencies import get_currency
 from valutatrade_hub.core.exceptions import ApiRequestError
 from valutatrade_hub.core.utils import iso_time, number
 from valutatrade_hub.parser_service.api_clients import (
@@ -33,12 +34,14 @@ class RatesUpdater:
                 continue
             try:
                 rates = client.fetch_rates()
-                if not rates:
+                if not isinstance(rates, dict) or not rates:
                     raise ApiRequestError(f"{client.source}: пустой ответ")
                 stamp = iso_time()
                 batch = []
                 for pair, value in rates.items():
                     left, right = pair.split("_")
+                    get_currency(left)
+                    get_currency(right)
                     batch.append(
                         {
                             "id": f"{pair}_{stamp}",

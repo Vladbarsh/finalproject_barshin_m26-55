@@ -9,13 +9,18 @@ def number(value, *, allow_zero=False):
     if (
         isinstance(value, bool)
         or not isinstance(value, (int, float))
-        or not math.isfinite(value)
         or value < 0
         or (value == 0 and not allow_zero)
     ):
         qualifier = "неотрицательным" if allow_zero else "положительным"
         raise ValueError(f"'amount' должен быть {qualifier} числом")
-    return float(value)
+    try:
+        result = float(value)
+    except OverflowError as error:
+        raise ValueError("'amount' слишком велик") from error
+    if not math.isfinite(result):
+        raise ValueError("'amount' должен быть конечным положительным числом")
+    return result
 
 
 def normalize_code(code):
