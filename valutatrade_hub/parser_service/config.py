@@ -32,6 +32,8 @@ class ParserConfig:
     REQUEST_TIMEOUT: int = field(
         default_factory=lambda: SettingsLoader().get("request_timeout")
     )
+    REQUEST_ATTEMPTS: int = 3
+    RETRY_DELAY: float = 0.4
 
     def __post_init__(self):
         if self.BASE_CURRENCY != "USD":

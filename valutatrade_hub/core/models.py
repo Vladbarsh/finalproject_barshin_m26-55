@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import secrets
 from datetime import datetime
+from decimal import Decimal
 
 from valutatrade_hub.core.currencies import get_currency
 from valutatrade_hub.core.exceptions import InsufficientFundsError, StorageError
@@ -134,14 +135,14 @@ class Wallet:
 
     def deposit(self, amount):
         """Пополняет кошелёк положительной суммой."""
-        self.balance = self.balance + number(amount)
+        self.balance = float(Decimal(str(self.balance)) + Decimal(str(number(amount))))
 
     def withdraw(self, amount):
         """Списывает сумму, если остаток достаточен."""
         amount = number(amount)
         if amount > self.balance:
             raise InsufficientFundsError(self.balance, amount, self.currency_code)
-        self.balance = self.balance - amount
+        self.balance = float(Decimal(str(self.balance)) - Decimal(str(amount)))
 
     def get_balance_info(self):
         """Возвращает строку с кодом и балансом."""

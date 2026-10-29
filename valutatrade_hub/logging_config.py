@@ -18,7 +18,7 @@ def setup_logging():
     formatter.converter = time.gmtime
     for name, filename in (("actions", "actions.log"), ("parser", "parser.log")):
         logger = logging.getLogger(f"valutatrade.{name}")
-        logger.setLevel(logging.INFO)
+        logger.setLevel(settings.get("log_level"))
         logger.propagate = False
         target = str((directory / filename).resolve())
         if any(

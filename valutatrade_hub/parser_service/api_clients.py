@@ -23,13 +23,14 @@ class BaseApiClient(ABC):
 
     def _request(self, url, **kwargs):
         started = time.monotonic()
-        for attempt in range(3):
+        attempts = self.config.REQUEST_ATTEMPTS
+        for attempt in range(attempts):
             try:
                 response = self.session.get(
                     url, timeout=self.config.REQUEST_TIMEOUT, **kwargs
                 )
-                if response.status_code >= 500 and attempt < 2:
-                    time.sleep(0.4 * (attempt + 1))
+                if response.status_code >= 500 and attempt + 1 < attempts:
+                    time.sleep(self.config.RETRY_DELAY * (attempt + 1))
                     continue
                 if response.status_code != 200:
                     raise ApiRequestError(f"{self.source}: HTTP {response.status_code}")
@@ -38,8 +39,8 @@ class BaseApiClient(ABC):
                     raise ValueError("Ожидался JSON-объект")
                 break
             except (requests.Timeout, requests.ConnectionError) as error:
-                if attempt < 2:
-                    time.sleep(0.4 * (attempt + 1))
+                if attempt + 1 < attempts:
+                    time.sleep(self.config.RETRY_DELAY * (attempt + 1))
                     continue
                 raise ApiRequestError(
                     f"{self.source}: {type(error).__name__}"

@@ -12,6 +12,7 @@ DEFAULTS = {
     "log_max_bytes": 1_048_576,
     "log_backup_count": 3,
     "log_format": "%(levelname)s %(asctime)sZ %(message)s",
+    "log_level": "INFO",
     "request_timeout": 10,
     "update_interval": 300,
 }
@@ -43,7 +44,7 @@ class SettingsLoader:
                     )
             elif "VALUTATRADE_CONFIG" in os.environ:
                 raise StorageError("Не найден файл VALUTATRADE_CONFIG")
-        except (OSError, ValueError) as error:
+        except (OSError, ValueError, TypeError, AttributeError) as error:
             raise StorageError("Не удалось прочитать настройки") from error
         values["data_dir"] = Path(
             os.getenv("VALUTATRADE_DATA_DIR", values.get("data_dir", "data"))
@@ -69,6 +70,12 @@ class SettingsLoader:
                 raise StorageError(
                     f"Настройка {key} должна быть положительным целым числом"
                 )
+        for key in ("base_currency", "log_format", "log_level"):
+            if not isinstance(values[key], str) or not values[key].strip():
+                raise StorageError(f"Настройка {key} должна быть непустой строкой")
+        values["log_level"] = values["log_level"].upper()
+        if values["log_level"] not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+            raise StorageError("Неизвестный уровень логирования")
         self._values = values
 
     def get(self, key, default=None):
