@@ -23,20 +23,34 @@ class BaseApiClient(ABC):
 
     def _request(self, url, **kwargs):
         started = time.monotonic()
-        try:
-            response = self.session.get(
-                url, timeout=self.config.REQUEST_TIMEOUT, **kwargs
-            )
-            if response.status_code != 200:
-                raise ApiRequestError(f"{self.source}: HTTP {response.status_code}")
-            data = response.json()
-            if not isinstance(data, dict):
-                raise ValueError("Ожидался JSON-объект")
-        except requests.RequestException as error:
-            # Текст requests может содержать URL с ключом: оставляем только тип.
-            raise ApiRequestError(f"{self.source}: {type(error).__name__}") from None
-        except (ValueError, TypeError) as error:
-            raise ApiRequestError(f"{self.source}: неверный JSON-ответ") from error
+        for attempt in range(3):
+            try:
+                response = self.session.get(
+                    url, timeout=self.config.REQUEST_TIMEOUT, **kwargs
+                )
+                if response.status_code >= 500 and attempt < 2:
+                    time.sleep(0.4 * (attempt + 1))
+                    continue
+                if response.status_code != 200:
+                    raise ApiRequestError(f"{self.source}: HTTP {response.status_code}")
+                data = response.json()
+                if not isinstance(data, dict):
+                    raise ValueError("Ожидался JSON-объект")
+                break
+            except (requests.Timeout, requests.ConnectionError) as error:
+                if attempt < 2:
+                    time.sleep(0.4 * (attempt + 1))
+                    continue
+                raise ApiRequestError(
+                    f"{self.source}: {type(error).__name__}"
+                ) from None
+            except requests.RequestException as error:
+                # Текст requests может содержать URL с ключом.
+                raise ApiRequestError(
+                    f"{self.source}: {type(error).__name__}"
+                ) from None
+            except (ValueError, TypeError) as error:
+                raise ApiRequestError(f"{self.source}: неверный JSON-ответ") from error
         self.meta = {
             "request_ms": round((time.monotonic() - started) * 1000),
             "status_code": response.status_code,
