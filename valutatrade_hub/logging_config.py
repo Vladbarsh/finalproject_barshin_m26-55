@@ -13,7 +13,7 @@ def setup_logging():
     directory = settings.get("log_dir")
     directory.mkdir(parents=True, exist_ok=True)
     formatter = logging.Formatter(
-        "%(levelname)s %(asctime)sZ %(message)s", datefmt="%Y-%m-%dT%H:%M:%S"
+        settings.get("log_format"), datefmt="%Y-%m-%dT%H:%M:%S"
     )
     formatter.converter = time.gmtime
     for name, filename in (("actions", "actions.log"), ("parser", "parser.log")):

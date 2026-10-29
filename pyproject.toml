@@ -24,6 +24,7 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-name = "valutatrade_hub"
 module-root = ""
+source-include = ["main.py", "Makefile", "uv.lock", ".python-version", "data/*.json"]
 
 [tool.ruff]
 line-length = 88
