@@ -1,6 +1,6 @@
 [project]
 name = "finalproject-barshin-m26-55"
-version = "0.1.0"
+version = "0.1.1"
 description = "Консольный валютный портфель ValutaTrade Hub"
 readme = "README.md"
 authors = [
@@ -38,6 +38,7 @@ rates_ttl_seconds = 300
 base_currency = "USD"
 log_max_bytes = 1048576
 log_backup_count = 3
+log_level = "INFO"
 request_timeout = 10
 update_interval = 300
 

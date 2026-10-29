@@ -46,7 +46,7 @@ class CryptoCurrency(Currency):
 
     def get_display_info(self):
         """Возвращает алгоритм и справочную капитализацию."""
-        cap = format(self.market_cap, ".3g")
+        cap = format(self.market_cap, ".3g").replace("e+", "e")
         return (
             f"[CRYPTO] {self.code} — {self.name} (Algo: {self.algorithm}, MCAP: {cap})"
         )

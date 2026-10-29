@@ -13,6 +13,7 @@ from valutatrade_hub.core.exceptions import (
     StorageError,
 )
 from valutatrade_hub.core.usecases import TradingService
+from valutatrade_hub.infra.settings import SettingsLoader
 from valutatrade_hub.logging_config import setup_logging
 
 COMMANDS = {
@@ -46,7 +47,7 @@ def command_parser(command):
         parser.add_argument("--currency", required=True)
         parser.add_argument("--amount", required=True, type=float)
     elif command == "show-portfolio":
-        parser.add_argument("--base", default="USD")
+        parser.add_argument("--base", default=SettingsLoader().get("base_currency"))
     elif command == "get-rate":
         parser.add_argument("--from", dest="from_code", required=True)
         parser.add_argument("--to", dest="to_code", required=True)
@@ -55,7 +56,7 @@ def command_parser(command):
     elif command == "show-rates":
         parser.add_argument("--currency")
         parser.add_argument("--top", type=int)
-        parser.add_argument("--base", default="USD")
+        parser.add_argument("--base", default=SettingsLoader().get("base_currency"))
     return parser
 
 

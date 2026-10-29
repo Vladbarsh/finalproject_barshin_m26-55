@@ -28,8 +28,8 @@ def normalize_code(code):
     if not isinstance(code, str):
         raise ValueError("Код валюты должен быть строкой")
     code = code.strip().upper()
-    if not 2 <= len(code) <= 5 or not code.isascii() or not code.isalpha():
-        raise ValueError("Код валюты: 2–5 латинских букв без пробелов")
+    if not 2 <= len(code) <= 5 or not code.isascii() or not code.isalnum():
+        raise ValueError("Код валюты: 2–5 латинских букв или цифр без пробелов")
     return code
 
 

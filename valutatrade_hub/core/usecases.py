@@ -3,7 +3,13 @@
 from valutatrade_hub.core.currencies import CryptoCurrency, get_currency
 from valutatrade_hub.core.exceptions import ApiRequestError, StorageError
 from valutatrade_hub.core.models import Portfolio, User
-from valutatrade_hub.core.utils import cached_rate, number, parse_time, utc_now
+from valutatrade_hub.core.utils import (
+    cached_rate,
+    iso_time,
+    number,
+    parse_time,
+    utc_now,
+)
 from valutatrade_hub.decorators import log_action
 from valutatrade_hub.infra.database import DatabaseManager
 from valutatrade_hub.infra.settings import SettingsLoader
@@ -187,7 +193,11 @@ class TradingService:
                 continue
             try:
                 rate, updated = cached_rate(pairs, code, base)
+                if code == base:
+                    updated = iso_time(parse_time(pairs[f"{code}_USD"]["updated_at"]))
                 age = (utc_now() - parse_time(updated)).total_seconds()
+                if age < -60:
+                    raise ValueError("Неверная дата обновления")
                 stale = age >= self.settings.get("rates_ttl_seconds")
             except (ValueError, KeyError, TypeError) as error:
                 raise ApiRequestError(
